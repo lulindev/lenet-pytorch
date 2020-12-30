@@ -94,17 +94,12 @@ if __name__ == '__main__':
     lr = 0.001
 
     # 1. Dataset
-    train_transform = torchvision.transforms.Compose([
-        torchvision.transforms.RandomHorizontalFlip(),
+    transform = torchvision.transforms.Compose([
         torchvision.transforms.Resize((32, 32)),
         torchvision.transforms.ToTensor(),
     ])
-    test_transform = torchvision.transforms.Compose([
-        torchvision.transforms.Resize((32, 32)),
-        torchvision.transforms.ToTensor(),
-    ])
-    trainset = torchvision.datasets.MNIST(root='dataset', train=True, download=True, transform=train_transform)
-    testset = torchvision.datasets.MNIST(root='dataset', train=False, download=True, transform=test_transform)
+    trainset = torchvision.datasets.MNIST(root='dataset', train=True, download=True, transform=transform)
+    testset = torchvision.datasets.MNIST(root='dataset', train=False, download=True, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size, shuffle=True, num_workers=8, pin_memory=True)
     testloader = torch.utils.data.DataLoader(testset, batch_size, num_workers=8)
 
