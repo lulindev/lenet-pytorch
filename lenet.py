@@ -119,7 +119,8 @@ if __name__ == '__main__':
         train(model, trainloader, creterion, optimizer, writer, eph, device)
 
         val_loss, accuracy = evaluate(model, testloader, creterion, device)
-        writer.add_scalars('Test', {'Loss': val_loss, 'Accuracy': accuracy}, eph)
+        writer.add_scalar('Test Loss', val_loss, eph)
+        writer.add_scalar('Test Accuracy', accuracy, eph)
 
         if accuracy > prev_accuracy:
             torch.save(model.state_dict(), model.get_name().lower() + '.pth')
