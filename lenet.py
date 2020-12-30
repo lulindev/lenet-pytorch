@@ -71,10 +71,8 @@ if __name__ == '__main__':
         torchvision.transforms.Resize((32, 32)),
         torchvision.transforms.ToTensor(),
     ])
-    trainset = torchvision.datasets.MNIST(root='dataset', train=True, download=True,
-                                          transform=transform)
-    testset = torchvision.datasets.MNIST(root='dataset', train=False, download=True,
-                                         transform=transform)
+    trainset = torchvision.datasets.MNIST(root='dataset', train=True, download=True, transform=transform)
+    testset = torchvision.datasets.MNIST(root='dataset', train=False, download=True, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size, shuffle=True, num_workers=4, pin_memory=True)
     testloader = torch.utils.data.DataLoader(testset, batch_size, num_workers=4)
 
