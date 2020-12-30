@@ -51,7 +51,7 @@ class CustomLeNet(nn.Module):
 
 def train(model, trainloader, creterion, optimizer, writer, epoch, device):
     model.train()
-    for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Batch', leave=False)):
+    for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
         images, targets = images.to(device), targets.to(device)
 
         optimizer.zero_grad()
