@@ -80,11 +80,10 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = LeNet().to(device)
 
-    # 3. Loss function, optimizer, lr_scheduler
+    # 3. Loss function, optimizer
     creterion = nn.CrossEntropyLoss()
     creterion_test = nn.CrossEntropyLoss(reduction='sum')
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)
 
     # 4. Tensorboard
     writer = torch.utils.tensorboard.SummaryWriter('runs')
@@ -96,7 +95,6 @@ if __name__ == '__main__':
 
         test_loss, test_accuracy = evaluate(model, testloader, creterion_test, device)
         writer.add_scalars('Test', {'Loss': test_loss, 'Accuracy': test_accuracy}, eph)
-        lr_scheduler.step()
 
     # 6. Save model
     torch.save(model.state_dict(), 'lenet.pth')
