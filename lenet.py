@@ -61,12 +61,12 @@ def evaluate(model, testloader, creterion, device):
 
 
 if __name__ == '__main__':
-    # Hyper parameters
-    batch_size = 128
-    epochs = 50
-    lr = 0.001
+    # 0. Hyper parameters
+    batch_size = 512
+    epoch = 50
+    lr = 0.0001
 
-    # Dataset
+    # 1. Dataset
     transform = torchvision.transforms.Compose([
         torchvision.transforms.Resize((32, 32)),
         torchvision.transforms.ToTensor(),
@@ -76,26 +76,28 @@ if __name__ == '__main__':
     testset = torchvision.datasets.MNIST(root='dataset', train=False, download=True,
                                          transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size, shuffle=True, num_workers=4, pin_memory=True)
-    testloader = torch.utils.data.DataLoader(testset, batch_size, num_workers=4, pin_memory=True)
+    testloader = torch.utils.data.DataLoader(testset, batch_size, num_workers=4)
 
-    # Model
+    # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = LeNet().to(device)
 
-    # Loss function, optimizer
+    # 3. Loss function, optimizer
     creterion = nn.CrossEntropyLoss()
     creterion_test = nn.CrossEntropyLoss(reduction='sum')
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-    # Train and test
+    # 4. Tensorboard
     writer = torch.utils.tensorboard.SummaryWriter('runs')
-    for epoch in tqdm.tqdm(range(epochs), desc='Epoch'):
-        train(model, trainloader, creterion, optimizer, writer, epoch, device)
+    writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
+    writer.add_hparams({'Batch size': batch_size, 'Epoch': epoch, 'lr': lr}, {' ': 0})
+
+    # 5. Train and test
+    for eph in tqdm.tqdm(range(epoch), desc='Epoch'):
+        train(model, trainloader, creterion, optimizer, writer, eph, device)
 
         test_loss, test_accuracy = evaluate(model, testloader, creterion_test, device)
-        writer.add_scalar('Test loss', test_loss, epoch)
-        writer.add_scalar('Test accuracy', test_accuracy, epoch)
+        writer.add_scalars('Test', {'Test loss': test_loss, 'Test accuracy': test_accuracy}, eph)
 
-    # Save model
+    # 6. Save model
     torch.save(model.state_dict(), 'lenet.pth')
-    print('Saved model')
