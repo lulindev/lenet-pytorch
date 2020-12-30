@@ -62,9 +62,9 @@ def evaluate(model, testloader, creterion, device):
 
 if __name__ == '__main__':
     # 0. Hyper parameters
-    batch_size = 4096
+    batch_size = 8192
     epoch = 100
-    lr = 0.0001
+    lr = 0.001
 
     # 1. Dataset
     transform = torchvision.transforms.Compose([
@@ -90,14 +90,13 @@ if __name__ == '__main__':
     # 4. Tensorboard
     writer = torch.utils.tensorboard.SummaryWriter('runs')
     writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
-    writer.add_hparams({'Batch size': batch_size, 'Epoch': epoch, 'lr': lr}, {' ': 0})
 
     # 5. Train and test
     for eph in tqdm.tqdm(range(epoch), desc='Epoch'):
         train(model, trainloader, creterion, optimizer, writer, eph, device)
 
         test_loss, test_accuracy = evaluate(model, testloader, creterion_test, device)
-        writer.add_scalars('Test', {'Test loss': test_loss, 'Test accuracy': test_accuracy}, eph)
+        writer.add_scalars('Test', {'Loss': test_loss, 'Accuracy': test_accuracy}, eph)
 
     # 6. Save model
     torch.save(model.state_dict(), 'lenet.pth')
