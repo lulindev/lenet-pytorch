@@ -1,4 +1,5 @@
 .idea/
+backup/
 dataset/
 runs/
 *.pth
