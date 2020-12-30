@@ -75,7 +75,7 @@ if __name__ == '__main__':
                                           transform=transform)
     testset = torchvision.datasets.MNIST(root='dataset', train=False, download=True,
                                          transform=transform)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size, shuffle=True, num_workers=4, pin_memory=True)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size, shuffle=True, num_workers=4)
     testloader = torch.utils.data.DataLoader(testset, batch_size, num_workers=4)
 
     # 2. Model
