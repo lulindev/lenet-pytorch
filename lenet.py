@@ -22,7 +22,7 @@ class LeNet(nn.Module):
         x = x.view(-1, 16 * 5 * 5)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        x = F.log_softmax(self.fc3(x), dim=1)
+        x = self.fc3(x)  # log_softmax를 수행해야하지만 loss function에 포함됨.
         return x
 
 
@@ -52,7 +52,7 @@ def evaluate(model, testloader, creterion, device):
 
             test_loss += creterion(outputs, targets).item()
 
-            pred = torch.argmax(outputs, dim=1)
+            pred = torch.argmax(F.log_softmax(outputs, dim=1), dim=1)
             correct += torch.eq(pred, targets).sum().item()
 
     test_loss /= len(testloader.dataset)
