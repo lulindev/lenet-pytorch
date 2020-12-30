@@ -85,7 +85,7 @@ def evaluate(model, testloader, creterion, device):
 
 if __name__ == '__main__':
     # 0. Hyper parameters
-    batch_size = 4096
+    batch_size = 256
     epoch = 100
     lr = 0.001
 
@@ -104,8 +104,7 @@ if __name__ == '__main__':
     model = LeNet().to(device)
 
     # 3. Loss function, optimizer
-    creterion = nn.CrossEntropyLoss()
-    creterion_test = nn.CrossEntropyLoss(reduction='sum')
+    creterion = nn.CrossEntropyLoss(reduction='sum')
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     # 4. Tensorboard
@@ -117,7 +116,7 @@ if __name__ == '__main__':
     for eph in tqdm.tqdm(range(epoch), desc='Epoch'):
         train(model, trainloader, creterion, optimizer, writer, eph, device)
 
-        val_loss, accuracy = evaluate(model, testloader, creterion_test, device)
+        val_loss, accuracy = evaluate(model, testloader, creterion, device)
         writer.add_scalars('Test', {'Loss': val_loss, 'Accuracy': accuracy}, eph)
 
         if accuracy > prev_accuracy:
