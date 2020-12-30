@@ -95,6 +95,7 @@ if __name__ == '__main__':
 
     # 1. Dataset
     transform = torchvision.transforms.Compose([
+        torchvision.transforms.RandomHorizontalFlip(),
         torchvision.transforms.Resize((32, 32)),
         torchvision.transforms.ToTensor(),
     ])
