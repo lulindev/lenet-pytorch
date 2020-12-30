@@ -85,7 +85,7 @@ def evaluate(model, testloader, creterion, device):
 
 if __name__ == '__main__':
     # 0. Hyper parameters
-    batch_size = 8192
+    batch_size = 4096
     epoch = 100
     lr = 0.001
 
@@ -96,8 +96,8 @@ if __name__ == '__main__':
     ])
     trainset = torchvision.datasets.MNIST(root='dataset', train=True, download=True, transform=transform)
     testset = torchvision.datasets.MNIST(root='dataset', train=False, download=True, transform=transform)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size, shuffle=True, num_workers=4, pin_memory=True)
-    testloader = torch.utils.data.DataLoader(testset, batch_size, num_workers=4)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size, shuffle=True, num_workers=8, pin_memory=True)
+    testloader = torch.utils.data.DataLoader(testset, batch_size, num_workers=8)
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
