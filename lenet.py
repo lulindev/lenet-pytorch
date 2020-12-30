@@ -100,4 +100,4 @@ if __name__ == '__main__':
         writer.add_scalars('Test', {'Test loss': test_loss, 'Test accuracy': test_accuracy}, eph)
 
     # 6. Save model
-    torch.save(model.state_dict(), 'weights/lenet.pth')
+    torch.save(model.state_dict(), 'lenet.pth')
