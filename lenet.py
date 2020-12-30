@@ -62,7 +62,7 @@ def train(model, trainloader, creterion, optimizer, writer, epoch, device):
         loss.backward()
         optimizer.step()
 
-        writer.add_scalar('Train loss', loss.item(), len(trainloader) * epoch + batch_idx)
+        writer.add_scalar('Train Loss', loss.item(), len(trainloader) * epoch + batch_idx)
 
 
 def evaluate(model, testloader, creterion, device):
