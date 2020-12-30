@@ -25,6 +25,9 @@ class LeNet(nn.Module):
         x = self.fc3(x)  # log_softmax를 수행해야하지만 loss function에 포함되어 있으므로 생략.
         return x
 
+    def get_name(self):
+        return 'LeNet'
+
 
 class CustomLeNet(nn.Module):
     def __init__(self):
@@ -41,6 +44,9 @@ class CustomLeNet(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.fc2(x)  # log_softmax를 수행해야하지만 loss function에 포함되어 있으므로 생략.
         return x
+
+    def get_name(self):
+        return 'CustomLeNet'
 
 
 def train(model, trainloader, creterion, optimizer, writer, epoch, device):
@@ -60,21 +66,21 @@ def train(model, trainloader, creterion, optimizer, writer, epoch, device):
 def evaluate(model, testloader, creterion, device):
     model.eval()
 
-    test_loss = 0
+    val_loss = 0
     correct = 0
     with torch.no_grad():
         for images, targets in tqdm.tqdm(testloader, desc='Eval', leave=False):
             images, targets = images.to(device), targets.to(device)
             outputs = model(images)
 
-            test_loss += creterion(outputs, targets).item()
+            val_loss += creterion(outputs, targets).item()
 
             pred = torch.argmax(F.log_softmax(outputs, dim=1), dim=1)
             correct += torch.eq(pred, targets).sum().item()
 
-    test_loss /= len(testloader.dataset)
-    test_accuracy = 100 * correct / len(testloader.dataset)
-    return test_loss, test_accuracy
+    val_loss /= len(testloader.dataset)
+    accuracy = 100 * correct / len(testloader.dataset)
+    return val_loss, accuracy
 
 
 if __name__ == '__main__':
@@ -103,15 +109,17 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     # 4. Tensorboard
-    writer = torch.utils.tensorboard.SummaryWriter('runs/renet')
+    writer = torch.utils.tensorboard.SummaryWriter('runs/' + model.get_name())
     writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
 
     # 5. Train and test
+    prev_accuracy = 0
     for eph in tqdm.tqdm(range(epoch), desc='Epoch'):
         train(model, trainloader, creterion, optimizer, writer, eph, device)
 
-        test_loss, test_accuracy = evaluate(model, testloader, creterion_test, device)
-        writer.add_scalars('Test', {'Loss': test_loss, 'Accuracy': test_accuracy}, eph)
+        val_loss, accuracy = evaluate(model, testloader, creterion_test, device)
+        writer.add_scalars('Test', {'Loss': val_loss, 'Accuracy': accuracy}, eph)
 
-    # 6. Save model
-    torch.save(model.state_dict(), 'lenet.pth')
+        if accuracy > prev_accuracy:
+            torch.save(model.state_dict(), model.get_name().lower() + '.pth')
+            prev_accuracy = accuracy
