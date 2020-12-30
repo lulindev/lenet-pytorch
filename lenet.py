@@ -123,3 +123,4 @@ if __name__ == '__main__':
         if accuracy > prev_accuracy:
             torch.save(model.state_dict(), model.get_name().lower() + '.pth')
             prev_accuracy = accuracy
+    writer.close()
