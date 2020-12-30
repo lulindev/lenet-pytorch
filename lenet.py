@@ -62,8 +62,8 @@ def evaluate(model, testloader, creterion, device):
 
 if __name__ == '__main__':
     # 0. Hyper parameters
-    batch_size = 512
-    epoch = 50
+    batch_size = 4096
+    epoch = 100
     lr = 0.0001
 
     # 1. Dataset
