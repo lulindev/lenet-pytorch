@@ -53,21 +53,21 @@ class CustomLeNet(nn.Module):
         return 'CustomLeNet'
 
 
-def train(model, trainloader, creterion, optimizer, writer, epoch, device):
+def train(model, trainloader, criterion, optimizer, writer, epoch, device):
     model.train()
     for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
         images, targets = images.to(device), targets.to(device)
 
         optimizer.zero_grad()
         outputs = model(images)
-        loss = creterion(outputs, targets)
+        loss = criterion(outputs, targets)
         loss.backward()
         optimizer.step()
 
         writer.add_scalar('Train Loss', loss.item(), len(trainloader) * epoch + batch_idx)
 
 
-def evaluate(model, testloader, creterion, device):
+def evaluate(model, testloader, criterion, device):
     model.eval()
 
     val_loss = 0
@@ -77,7 +77,7 @@ def evaluate(model, testloader, creterion, device):
             images, targets = images.to(device), targets.to(device)
             outputs = model(images)
 
-            val_loss += creterion(outputs, targets).item()
+            val_loss += criterion(outputs, targets).item()
 
             pred = torch.argmax(F.log_softmax(outputs, dim=1), dim=1)
             correct += torch.eq(pred, targets).sum().item()
@@ -108,7 +108,7 @@ if __name__ == '__main__':
     model = LeNet().to(device)
 
     # 3. Loss function, optimizer
-    creterion = nn.CrossEntropyLoss(reduction='sum')
+    criterion = nn.CrossEntropyLoss(reduction='sum')
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     # 4. Tensorboard
@@ -118,9 +118,9 @@ if __name__ == '__main__':
     # 5. Train and test
     prev_accuracy = 0
     for eph in tqdm.tqdm(range(epoch), desc='Epoch'):
-        train(model, trainloader, creterion, optimizer, writer, eph, device)
+        train(model, trainloader, criterion, optimizer, writer, eph, device)
 
-        val_loss, accuracy = evaluate(model, testloader, creterion, device)
+        val_loss, accuracy = evaluate(model, testloader, criterion, device)
         writer.add_scalar('Test Loss', val_loss, eph)
         writer.add_scalar('Test Accuracy', accuracy, eph)
 
