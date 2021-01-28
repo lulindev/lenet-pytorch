@@ -119,6 +119,6 @@ if __name__ == '__main__':
         writer.add_scalar('Test Accuracy', accuracy, eph)
 
         if accuracy > prev_accuracy:
-            torch.save(model.state_dict(), model.__str__().split('(')[0] + '.pth')
+            torch.save(model.state_dict(), '{}_best.pth'.format(model.__str__().split('(')[0]))
             prev_accuracy = accuracy
     writer.close()
