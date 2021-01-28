@@ -1,6 +1,7 @@
 .idea/
 backup/
 dataset/
+feature_maps/
 runs/
 *.pth
 
