@@ -25,9 +25,6 @@ class LeNet(nn.Module):
         x = self.fc3(x)  # log_softmax를 수행해야하지만 loss function에 포함되어 있으므로 생략.
         return x
 
-    def get_name(self):
-        return 'LeNet'
-
 
 class CustomLeNet(nn.Module):
     def __init__(self):
@@ -48,9 +45,6 @@ class CustomLeNet(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc3(x)  # log_softmax를 수행해야하지만 loss function에 포함되어 있으므로 생략.
         return x
-
-    def get_name(self):
-        return 'CustomLeNet'
 
 
 def train(model, trainloader, criterion, optimizer, writer, epoch, device):
@@ -112,7 +106,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     # 4. Tensorboard
-    writer = torch.utils.tensorboard.SummaryWriter('runs/' + model.get_name())
+    writer = torch.utils.tensorboard.SummaryWriter('runs/' + model.__str__().split('(')[0])
     writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
 
     # 5. Train and test
@@ -125,6 +119,6 @@ if __name__ == '__main__':
         writer.add_scalar('Test Accuracy', accuracy, eph)
 
         if accuracy > prev_accuracy:
-            torch.save(model.state_dict(), model.get_name().lower() + '.pth')
+            torch.save(model.state_dict(), model.__str__().split('(')[0] + '.pth')
             prev_accuracy = accuracy
     writer.close()
