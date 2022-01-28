@@ -67,7 +67,7 @@ def train(model, trainloader, criterion, optimizer, device):
         loss.backward()
         optimizer.step()
 
-        train_loss += loss
+        train_loss += loss.item()
         pred = torch.argmax(outputs, dim=1)
         correct += torch.eq(pred, targets).sum().item()
 
