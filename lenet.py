@@ -64,7 +64,7 @@ def train(model, trainloader, criterion, optimizer, writer, epoch, device):
         loss.backward()
         optimizer.step()
 
-        writer.add_scalar('Train Loss', loss.item(), len(trainloader) * epoch + batch_idx)
+        writer.add_scalar('Loss/train', loss.item(), len(trainloader) * epoch + batch_idx)
 
 
 def evaluate(model, testloader, criterion, device):
@@ -124,7 +124,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.RAdam(model.parameters(), lr=lr)
 
     # 4. Tensorboard
-    writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name, time.strftime('%y%m%d-%H%M%S')))
+    writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name + time.strftime('_%y%m%d-%H%M%S')))
     writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
 
     # 5. Train and test
@@ -133,8 +133,8 @@ if __name__ == '__main__':
         train(model, trainloader, criterion, optimizer, writer, eph, device)
 
         val_loss, accuracy = evaluate(model, testloader, criterion, device)
-        writer.add_scalar('Test Loss', val_loss, eph)
-        writer.add_scalar('Test Accuracy', accuracy, eph)
+        writer.add_scalar('Loss/test', val_loss, eph)
+        writer.add_scalar('Test accuracy', accuracy, eph)
 
         if accuracy > prev_accuracy:
             os.makedirs('weights', exist_ok=True)
