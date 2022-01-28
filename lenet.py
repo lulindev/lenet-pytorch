@@ -69,11 +69,10 @@ def evaluate(model, testloader, criterion, device):
     with torch.no_grad():
         for images, targets in tqdm.tqdm(testloader, desc='Eval', leave=False):
             images, targets = images.to(device), targets.to(device)
+
             outputs = model(images)
-
             val_loss += criterion(outputs, targets).item()
-
-            pred = torch.argmax(F.log_softmax(outputs, dim=1), dim=1)
+            pred = torch.argmax(outputs, dim=1)
             correct += torch.eq(pred, targets).sum().item()
 
     val_loss /= len(testloader.dataset)
