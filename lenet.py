@@ -55,6 +55,9 @@ class CustomLeNet(nn.Module):
 
 def train(model, trainloader, criterion, optimizer, writer, epoch, device):
     model.train()
+
+    train_loss = 0
+    correct = 0
     for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
         images, targets = images.to(device), targets.to(device)
 
@@ -64,26 +67,31 @@ def train(model, trainloader, criterion, optimizer, writer, epoch, device):
         loss.backward()
         optimizer.step()
 
-        writer.add_scalar('Loss/train', loss.item(), len(trainloader) * epoch + batch_idx)
+        train_loss += loss
+        pred = torch.argmax(outputs, dim=1)
+        correct += torch.eq(pred, targets).sum().item()
 
+    train_loss /= len(trainloader.dataset)
+    accuracy = 100 * correct / len(trainloader.dataset)
+    return train_loss, accuracy
 
 def evaluate(model, testloader, criterion, device):
     model.eval()
 
-    val_loss = 0
+    test_loss = 0
     correct = 0
     with torch.no_grad():
         for images, targets in tqdm.tqdm(testloader, desc='Eval', leave=False):
             images, targets = images.to(device), targets.to(device)
 
             outputs = model(images)
-            val_loss += criterion(outputs, targets).item()
+            test_loss += criterion(outputs, targets).item()
             pred = torch.argmax(outputs, dim=1)
             correct += torch.eq(pred, targets).sum().item()
 
-    val_loss /= len(testloader.dataset)
+    test_loss /= len(testloader.dataset)
     accuracy = 100 * correct / len(testloader.dataset)
-    return val_loss, accuracy
+    return test_loss, accuracy
 
 
 if __name__ == '__main__':
@@ -130,14 +138,16 @@ if __name__ == '__main__':
     # 5. Train and test
     prev_accuracy = 0
     for eph in tqdm.tqdm(range(epoch), desc='Epoch'):
-        train(model, trainloader, criterion, optimizer, writer, eph, device)
+        train_loss, train_accuracy = train(model, trainloader, criterion, optimizer, writer, eph, device)
+        writer.add_scalar('Loss/train', train_loss, eph)
+        writer.add_scalar('Accuracy/train', train_accuracy, eph)
 
-        val_loss, accuracy = evaluate(model, testloader, criterion, device)
-        writer.add_scalar('Loss/test', val_loss, eph)
-        writer.add_scalar('Test accuracy', accuracy, eph)
+        test_loss, test_accuracy = evaluate(model, testloader, criterion, device)
+        writer.add_scalar('Loss/test', test_loss, eph)
+        writer.add_scalar('Accuracy/test', test_accuracy, eph)
 
-        if accuracy > prev_accuracy:
+        if test_accuracy > prev_accuracy:
             os.makedirs('weights', exist_ok=True)
             torch.save(model.state_dict(), f'weights/{model_name}_best.pth')
-            prev_accuracy = accuracy
+            prev_accuracy = test_accuracy
     writer.close()
