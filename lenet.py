@@ -1,4 +1,10 @@
+import os
+import random
+import time
+
+import numpy as np
 import torch
+import torch.backends.cudnn
 import torch.utils.data
 import torch.utils.tensorboard
 import torch.nn as nn
@@ -81,9 +87,21 @@ def evaluate(model, testloader, criterion, device):
 
 
 if __name__ == '__main__':
+    # Pytorch reproducibility
+    reproducibility = True
+    if reproducibility:
+        torch.manual_seed(0)
+        torch.cuda.manual_seed(0)
+        torch.cuda.manual_seed_all(0)
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
+        np.random.seed(0)
+        random.seed(0)
+        torch.use_deterministic_algorithms(True)
+
     # 0. Hyper parameters
     batch_size = 256
-    epoch = 100
+    epoch = 10
     lr = 0.001
 
     # 1. Dataset
@@ -99,13 +117,14 @@ if __name__ == '__main__':
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = LeNet().to(device)
+    model_name = model.__str__().split('(')[0]
 
     # 3. Loss function, optimizer
     criterion = nn.CrossEntropyLoss(reduction='sum')
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.RAdam(model.parameters(), lr=lr)
 
     # 4. Tensorboard
-    writer = torch.utils.tensorboard.SummaryWriter('runs/' + model.__str__().split('(')[0])
+    writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name, time.strftime('%y%m%d-%H%M%S')))
     writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
 
     # 5. Train and test
@@ -118,6 +137,7 @@ if __name__ == '__main__':
         writer.add_scalar('Test Accuracy', accuracy, eph)
 
         if accuracy > prev_accuracy:
-            torch.save(model.state_dict(), '{}_best.pth'.format(model.__str__().split('(')[0]))
+            os.makedirs('weights', exist_ok=True)
+            torch.save(model.state_dict(), f'weights/{model_name}_best.pth')
             prev_accuracy = accuracy
     writer.close()
