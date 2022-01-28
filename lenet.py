@@ -75,6 +75,7 @@ def train(model, trainloader, criterion, optimizer, writer, epoch, device):
     accuracy = 100 * correct / len(trainloader.dataset)
     return train_loss, accuracy
 
+
 def evaluate(model, testloader, criterion, device):
     model.eval()
 
@@ -146,6 +147,10 @@ if __name__ == '__main__':
         writer.add_scalar('Loss/test', test_loss, eph)
         writer.add_scalar('Accuracy/test', test_accuracy, eph)
 
+        writer.add_scalars('Loss/mix', {'train': train_loss, 'test': test_loss}, eph)
+        writer.add_scalars('Accuracy/mix', {'train': train_accuracy, 'test': test_accuracy}, eph)
+
+        # Save weights
         if test_accuracy > prev_accuracy:
             os.makedirs('weights', exist_ok=True)
             torch.save(model.state_dict(), f'weights/{model_name}_best.pth')
