@@ -26,8 +26,8 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = lenet.LeNet().to(device)
     model_name = model.__str__().split('(')[0]
-    if os.path.exists('{}_best.pth'.format(model.__str__().split('(')[0])):
-        model.load_state_dict(torch.load('{}_best.pth'.format(model.__str__().split('(')[0])))
+    if os.path.exists('weights/{}_best.pth'.format(model.__str__().split('(')[0])):
+        model.load_state_dict(torch.load('weights/{}_best.pth'.format(model.__str__().split('(')[0])))
     else:
         print('FileNotFound: pretrained_weights (' + model_name + ')')
 
