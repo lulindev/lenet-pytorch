@@ -53,7 +53,7 @@ class CustomLeNet(nn.Module):
         return x
 
 
-def train(model, trainloader, criterion, optimizer, writer, epoch, device):
+def train(model, trainloader, criterion, optimizer, device):
     model.train()
 
     train_loss = 0
@@ -139,7 +139,7 @@ if __name__ == '__main__':
     # 5. Train and test
     prev_accuracy = 0
     for eph in tqdm.tqdm(range(epoch), desc='Epoch'):
-        train_loss, train_accuracy = train(model, trainloader, criterion, optimizer, writer, eph, device)
+        train_loss, train_accuracy = train(model, trainloader, criterion, optimizer, device)
         writer.add_scalar('Loss/train', train_loss, eph)
         writer.add_scalar('Accuracy/train', train_accuracy, eph)
 
