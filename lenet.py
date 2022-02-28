@@ -71,7 +71,7 @@ def train(model, trainloader, criterion, optimizer, device):
         pred = torch.argmax(outputs, dim=1)
         correct += torch.eq(pred, targets).sum().item()
 
-    train_loss /= len(trainloader.dataset)
+    train_loss /= len(trainloader)
     accuracy = 100 * correct / len(trainloader.dataset)
     return train_loss, accuracy
 
@@ -90,7 +90,7 @@ def evaluate(model, testloader, criterion, device):
             pred = torch.argmax(outputs, dim=1)
             correct += torch.eq(pred, targets).sum().item()
 
-    test_loss /= len(testloader.dataset)
+    test_loss /= len(testloader)
     accuracy = 100 * correct / len(testloader.dataset)
     return test_loss, accuracy
 
