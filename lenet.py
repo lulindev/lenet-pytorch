@@ -72,7 +72,7 @@ def train(model, trainloader, criterion, optimizer, device):
         correct += torch.eq(pred, targets).sum().item()
 
     train_loss /= len(trainloader)
-    accuracy = 100 * correct / len(trainloader.dataset)
+    accuracy = correct / len(trainloader.dataset) * 100
     return train_loss, accuracy
 
 
