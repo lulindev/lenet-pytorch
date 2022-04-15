@@ -78,7 +78,7 @@ def train(model, trainloader, criterion, optimizer, device):
 
     train_loss /= len(trainloader)
     accuracy = correct / len(trainloader.dataset) * 100
-    return train_loss, accuracy
+    return train_loss.item(), accuracy.item()
 
 
 def evaluate(model, testloader, criterion, device):
@@ -97,7 +97,7 @@ def evaluate(model, testloader, criterion, device):
 
     test_loss /= len(testloader)
     accuracy = correct / len(testloader.dataset) * 100
-    return test_loss, accuracy
+    return test_loss.item(), accuracy.item()
 
 
 if __name__ == '__main__':
