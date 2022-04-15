@@ -140,7 +140,7 @@ if __name__ == '__main__':
     model_name = model.__str__().split('(')[0]
 
     # 3. Loss function, optimizer, scheduler, scaler
-    criterion = nn.CrossEntropyLoss(reduction='sum')
+    criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.RAdam(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, 1, 0, epoch)
     scaler = torch.cuda.amp.GradScaler(enabled=amp_enabled)
@@ -153,10 +153,10 @@ if __name__ == '__main__':
     prev_accuracy = 0
     for eph in tqdm.tqdm(range(epoch), desc='Epoch'):
         train_loss, train_accuracy = train(model, trainloader, criterion, optimizer, device)
-
         test_loss, test_accuracy = evaluate(model, testloader, criterion, device)
         scheduler.step()
 
+        # Write data to Tensorboard
         writer.add_scalar('Loss/train', train_loss, eph)
         writer.add_scalar('Loss/test', test_loss, eph)
         writer.add_scalars('Loss/mix', {'train': train_loss, 'test': test_loss}, eph)
@@ -164,10 +164,11 @@ if __name__ == '__main__':
         writer.add_scalar('Accuracy/test', test_accuracy, eph)
         writer.add_scalars('Accuracy/mix', {'train': train_accuracy, 'test': test_accuracy}, eph)
 
-        # Save weights
+        # Save model weight
         if test_accuracy > prev_accuracy:
             os.makedirs('weights', exist_ok=True)
             torch.save(model.state_dict(), f'weights/{model_name}_best.pth')
             prev_accuracy = test_accuracy
 
+    # Close Tensorboard
     writer.close()
