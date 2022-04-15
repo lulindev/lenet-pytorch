@@ -22,8 +22,10 @@ class LeNet(nn.Module):
         self.fc3 = nn.Linear(84, 10)
 
     def forward(self, x):
-        x = F.max_pool2d(F.relu(self.conv1(x)), 2)
-        x = F.max_pool2d(F.relu(self.conv2(x)), 2)
+        x = F.relu(self.conv1(x))
+        x = F.max_pool2d(x, 2)
+        x = F.relu(self.conv2(x))
+        x = F.max_pool2d(x, 2)
         x = torch.flatten(x, start_dim=1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
@@ -44,8 +46,10 @@ class CustomLeNet(nn.Module):
         self.fc3 = nn.Linear(84, 10)
 
     def forward(self, x):
-        x = F.max_pool2d(F.relu(self.bn1(self.conv1(x))), 2)
-        x = F.max_pool2d(F.relu(self.bn2(self.conv2(x))), 2)
+        x = F.relu(self.bn1(self.conv1(x)))
+        x = F.max_pool2d(x, 2)
+        x = F.relu(self.bn2(self.conv2(x)))
+        x = F.max_pool2d(x, 2)
         x = torch.flatten(x, start_dim=1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
@@ -119,7 +123,7 @@ if __name__ == '__main__':
         random.seed(0)
         torch.use_deterministic_algorithms(True)
 
-    # 1. Dataset
+    # 1. Dataset, Dataloader
     transform = torchvision.transforms.Compose([
         torchvision.transforms.Resize((32, 32)),
         torchvision.transforms.ToTensor(),
@@ -140,7 +144,7 @@ if __name__ == '__main__':
     model = LeNet().to(device)
     model_name = model.__str__().split('(')[0]
 
-    # 3. Loss function, optimizer, scheduler, scaler
+    # 3. Loss function, Optimizer, Scheduler, Scaler
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.RAdam(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, 1, 0, epoch)
@@ -150,7 +154,7 @@ if __name__ == '__main__':
     writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
     writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
 
-    # 5. Train and test
+    # 5. Train and Test
     prev_accuracy = 0
     for eph in tqdm.tqdm(range(epoch), desc='Epoch'):
         train_loss, train_accuracy = train(model, trainloader, criterion, optimizer, device)
