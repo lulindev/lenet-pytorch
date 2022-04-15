@@ -17,16 +17,18 @@ class LeNet(nn.Module):
     def __init__(self):
         super(LeNet, self).__init__()
         self.conv1 = nn.Conv2d(1, 6, kernel_size=5)
+        self.maxpool1 = nn.MaxPool2d(2)
         self.conv2 = nn.Conv2d(6, 16, kernel_size=5)
+        self.maxpool2 = nn.MaxPool2d(2)
         self.fc1 = nn.Linear(16 * 5 * 5, 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 10)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
-        x = F.max_pool2d(x, 2)
+        x = self.maxpool1(x)
         x = F.relu(self.conv2(x))
-        x = F.max_pool2d(x, 2)
+        x = self.maxpool2(x)
         x = torch.flatten(x, start_dim=1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
@@ -40,17 +42,19 @@ class CustomLeNet(nn.Module):
         super(CustomLeNet, self).__init__()
         self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
         self.bn1 = nn.BatchNorm2d(10)
+        self.maxpool1 = nn.MaxPool2d(2)
         self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
         self.bn2 = nn.BatchNorm2d(20)
+        self.maxpool2 = nn.MaxPool2d(2)
         self.fc1 = nn.Linear(20 * 5 * 5, 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 10)
 
     def forward(self, x):
         x = F.relu(self.bn1(self.conv1(x)))
-        x = F.max_pool2d(x, 2)
+        x = self.maxpool1(x)
         x = F.relu(self.bn2(self.conv2(x)))
-        x = F.max_pool2d(x, 2)
+        x = self.maxpool2(x)
         x = torch.flatten(x, start_dim=1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
@@ -164,10 +168,10 @@ if __name__ == '__main__':
     writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
     writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
     wandb.init(project='test', entity='synml', config=config)
-    wandb.watch(model, criterion, log='all', log_freq=10, log_graph=True)
+    wandb.watch(model, criterion, log='all', log_freq=10)
 
     # 5. Train and Test
-    prev_accuracy = 0
+    best_accuracy = 0
     for eph in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
         train_loss, train_accuracy = train(model, trainloader, criterion, optimizer, device)
         test_loss, test_accuracy = evaluate(model, testloader, criterion, device)
@@ -176,18 +180,20 @@ if __name__ == '__main__':
         # Write data to Tensorboard
         writer.add_scalar('Train/loss', train_loss, eph)
         writer.add_scalar('Train/accuracy', train_accuracy, eph)
+        writer.add_scalar('Train/lr', optimizer.param_groups[0]['lr'], eph)
         writer.add_scalar('Test/loss', test_loss, eph)
         writer.add_scalar('Test/accuracy', test_accuracy, eph)
         wandb.log({
-            'Train': {'loss': train_loss, 'accuracy': train_accuracy},
+            'Train': {'loss': train_loss, 'accuracy': train_accuracy, 'lr': optimizer.param_groups[0]['lr']},
             'Test': {'loss': test_loss, 'accuracy': test_accuracy},
         })
 
         # Save model weight
-        if test_accuracy > prev_accuracy:
+        if test_accuracy > best_accuracy:
+            wandb.summary['best_accuracy'] = test_accuracy
             os.makedirs('weights', exist_ok=True)
             torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_best.pth'))
-            prev_accuracy = test_accuracy
+            best_accuracy = test_accuracy
 
     # Close Tensorboard
     writer.close()
