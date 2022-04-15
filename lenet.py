@@ -108,7 +108,7 @@ if __name__ == '__main__':
     amp_enabled = True
     num_workers = 2
     pin_memory = True
-    prefetch_factor = 2
+    prefetch_factor = 30000
     persistent_workers = True
     reproducibility = True
 
