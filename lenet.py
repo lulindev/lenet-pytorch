@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
 import tqdm
+import wandb
 
 
 class LeNet(nn.Module):
@@ -102,18 +103,20 @@ def evaluate(model, testloader, criterion, device):
 
 if __name__ == '__main__':
     # 0. Hyper parameters
-    batch_size = 256
-    epoch = 10
-    lr = 0.01
-    amp_enabled = True
-    num_workers = 2
-    pin_memory = True
-    prefetch_factor = 30000
-    persistent_workers = True
-    reproducibility = True
+    config = {
+        'batch_size': 256,
+        'epoch': 10,
+        'lr': 0.01,
+        'amp_enabled': True,
+        'reproducibility': True,
+        'num_workers': 2,
+        'pin_memory': True,
+        'prefetch_factor': 30000,
+        'persistent_workers': True,
+    }
 
     # Pytorch reproducibility
-    if reproducibility:
+    if config['reproducibility']:
         torch.manual_seed(0)
         torch.cuda.manual_seed(0)
         torch.cuda.manual_seed_all(0)
@@ -131,12 +134,21 @@ if __name__ == '__main__':
     trainset = torchvision.datasets.MNIST(root='data', train=True, download=True, transform=transform)
     testset = torchvision.datasets.MNIST(root='data', train=False, transform=transform)
     trainloader = torch.utils.data.DataLoader(
-        trainset, batch_size, shuffle=True, num_workers=num_workers,
-        pin_memory=pin_memory, prefetch_factor=prefetch_factor, persistent_workers=persistent_workers
+        trainset,
+        config['batch_size'],
+        shuffle=True,
+        num_workers=config['num_workers'],
+        pin_memory=config['pin_memory'],
+        prefetch_factor=config['prefetch_factor'],
+        persistent_workers=config['persistent_workers'],
     )
     testloader = torch.utils.data.DataLoader(
-        testset, batch_size, num_workers=num_workers,
-        pin_memory=pin_memory, prefetch_factor=prefetch_factor, persistent_workers=persistent_workers
+        testset,
+        config['batch_size'],
+        num_workers=config['num_workers'],
+        pin_memory=config['pin_memory'],
+        prefetch_factor=config['prefetch_factor'],
+        persistent_workers=config['persistent_workers'],
     )
 
     # 2. Model
@@ -146,9 +158,9 @@ if __name__ == '__main__':
 
     # 3. Loss function, Optimizer, Scheduler, Scaler
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.RAdam(model.parameters(), lr=lr)
-    scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, 1, 0, epoch)
-    scaler = torch.cuda.amp.GradScaler(enabled=amp_enabled)
+    optimizer = torch.optim.RAdam(model.parameters(), config['lr'])
+    scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, 1, 0, config['epoch'])
+    scaler = torch.cuda.amp.GradScaler(enabled=config['amp_enabled'])
 
     # 4. Tensorboard
     writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
@@ -156,7 +168,7 @@ if __name__ == '__main__':
 
     # 5. Train and Test
     prev_accuracy = 0
-    for eph in tqdm.tqdm(range(epoch), desc='Epoch'):
+    for eph in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
         train_loss, train_accuracy = train(model, trainloader, criterion, optimizer, device)
         test_loss, test_accuracy = evaluate(model, testloader, criterion, device)
         scheduler.step()
@@ -164,15 +176,13 @@ if __name__ == '__main__':
         # Write data to Tensorboard
         writer.add_scalar('Loss/train', train_loss, eph)
         writer.add_scalar('Loss/test', test_loss, eph)
-        writer.add_scalars('Loss/mix', {'train': train_loss, 'test': test_loss}, eph)
         writer.add_scalar('Accuracy/train', train_accuracy, eph)
         writer.add_scalar('Accuracy/test', test_accuracy, eph)
-        writer.add_scalars('Accuracy/mix', {'train': train_accuracy, 'test': test_accuracy}, eph)
 
         # Save model weight
         if test_accuracy > prev_accuracy:
             os.makedirs('weights', exist_ok=True)
-            torch.save(model.state_dict(), f'weights/{model_name}_best.pth')
+            torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_best.pth'))
             prev_accuracy = test_accuracy
 
     # Close Tensorboard
