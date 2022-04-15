@@ -57,7 +57,7 @@ def train(model, trainloader, criterion, optimizer, device):
 
     train_loss = 0
     correct = 0
-    for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
+    for images, targets in tqdm.tqdm(trainloader, desc='Train', leave=False):
         images, targets = images.to(device), targets.to(device)
 
         optimizer.zero_grad()
@@ -81,7 +81,7 @@ def evaluate(model, testloader, criterion, device):
     test_loss = 0
     correct = 0
     with torch.no_grad():
-        for images, targets in tqdm.tqdm(testloader, desc='Eval', leave=False):
+        for images, targets in tqdm.tqdm(testloader, desc='Evaluate', leave=False):
             images, targets = images.to(device), targets.to(device)
 
             outputs = model(images)
@@ -90,7 +90,7 @@ def evaluate(model, testloader, criterion, device):
             correct += torch.eq(pred, targets).sum().item()
 
     test_loss /= len(testloader)
-    accuracy = 100 * correct / len(testloader.dataset)
+    accuracy = correct / len(testloader.dataset) * 100
     return test_loss, accuracy
 
 
