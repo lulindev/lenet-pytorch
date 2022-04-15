@@ -27,7 +27,8 @@ class LeNet(nn.Module):
         x = torch.flatten(x, start_dim=1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        x = self.fc3(x)  # log_softmax를 수행해야하지만 loss function에 포함되어 있으므로 생략.
+        x = self.fc3(x)
+        # x = F.log_softmax(x, dim=1) log_softmax를 수행해야하지만 loss function에 포함되어 있으므로 생략.
         return x
 
 
@@ -48,7 +49,8 @@ class CustomLeNet(nn.Module):
         x = torch.flatten(x, start_dim=1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        x = self.fc3(x)  # log_softmax를 수행해야하지만 loss function에 포함되어 있으므로 생략.
+        x = self.fc3(x)
+        # x = F.log_softmax(x, dim=1) log_softmax를 수행해야하지만 loss function에 포함되어 있으므로 생략.
         return x
 
 
