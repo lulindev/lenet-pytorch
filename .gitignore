@@ -1,6 +1,6 @@
 .idea/
 backup/
-dataset/
+data/
 feature_maps/
 runs/
 weights/
