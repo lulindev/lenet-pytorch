@@ -80,15 +80,14 @@ def evaluate(model, testloader, criterion, device):
 
     test_loss = torch.zeros(1, device=device)
     correct = torch.zeros(1, dtype=torch.int64, device=device)
-    with torch.no_grad():
-        for images, targets in tqdm.tqdm(testloader, desc='Evaluate', leave=False):
-            images, targets = images.to(device), targets.to(device)
+    for images, targets in tqdm.tqdm(testloader, desc='Evaluate', leave=False):
+        images, targets = images.to(device), targets.to(device)
 
-            with torch.no_grad():
-                outputs = model(images)
-            test_loss += criterion(outputs, targets)
-            pred = torch.argmax(outputs, dim=1)
-            correct += torch.eq(pred, targets).sum()
+        with torch.no_grad():
+            outputs = model(images)
+        test_loss += criterion(outputs, targets)
+        pred = torch.argmax(outputs, dim=1)
+        correct += torch.eq(pred, targets).sum()
 
     test_loss /= len(testloader)
     accuracy = correct / len(testloader.dataset) * 100
