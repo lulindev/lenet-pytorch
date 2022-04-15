@@ -3,6 +3,7 @@ backup/
 data/
 feature_maps/
 runs/
+wandb/
 weights/
 
 # Byte-compiled / optimized / DLL files

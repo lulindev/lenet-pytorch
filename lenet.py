@@ -107,7 +107,6 @@ if __name__ == '__main__':
         'batch_size': 256,
         'epoch': 10,
         'lr': 0.01,
-        'amp_enabled': True,
         'reproducibility': True,
         'num_workers': 2,
         'pin_memory': True,
@@ -156,15 +155,16 @@ if __name__ == '__main__':
     model = LeNet().to(device)
     model_name = model.__str__().split('(')[0]
 
-    # 3. Loss function, Optimizer, Scheduler, Scaler
+    # 3. Loss function, Optimizer, Scheduler
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.RAdam(model.parameters(), config['lr'])
     scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, 1, 0, config['epoch'])
-    scaler = torch.cuda.amp.GradScaler(enabled=config['amp_enabled'])
 
     # 4. Tensorboard
     writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
     writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
+    wandb.init(project='test', entity='synml', config=config)
+    wandb.watch(model, criterion, log='all', log_freq=10, log_graph=True)
 
     # 5. Train and Test
     prev_accuracy = 0
@@ -174,10 +174,14 @@ if __name__ == '__main__':
         scheduler.step()
 
         # Write data to Tensorboard
-        writer.add_scalar('Loss/train', train_loss, eph)
-        writer.add_scalar('Loss/test', test_loss, eph)
-        writer.add_scalar('Accuracy/train', train_accuracy, eph)
-        writer.add_scalar('Accuracy/test', test_accuracy, eph)
+        writer.add_scalar('Train/loss', train_loss, eph)
+        writer.add_scalar('Train/accuracy', train_accuracy, eph)
+        writer.add_scalar('Test/loss', test_loss, eph)
+        writer.add_scalar('Test/accuracy', test_accuracy, eph)
+        wandb.log({
+            'Train': {'loss': train_loss, 'accuracy': train_accuracy},
+            'Test': {'loss': test_loss, 'accuracy': test_accuracy},
+        })
 
         # Save model weight
         if test_accuracy > prev_accuracy:
@@ -187,3 +191,4 @@ if __name__ == '__main__':
 
     # Close Tensorboard
     writer.close()
+    wandb.finish()
