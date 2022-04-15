@@ -106,7 +106,7 @@ if __name__ == '__main__':
     epoch = 10
     lr = 0.01
     amp_enabled = True
-    num_workers = 4
+    num_workers = 2
     pin_memory = True
     prefetch_factor = 2
     persistent_workers = True
