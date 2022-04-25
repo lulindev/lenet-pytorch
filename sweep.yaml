@@ -1,0 +1,15 @@
+project: sweep-test
+entity: synml
+program: lenet.py
+method: bayes
+parameters:
+  batch_size:
+    values: [64, 128, 256, 512]
+  epoch:
+    values: [5, 10, 20, 30]
+  lr:
+    min: 0.001
+    max: 0.1
+metric:
+  name: Test_accuracy
+  goal: maximize

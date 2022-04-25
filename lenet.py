@@ -5,7 +5,6 @@ import numpy as np
 import torch
 import torch.backends.cudnn
 import torch.utils.data
-import torch.utils.tensorboard
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
@@ -68,7 +67,7 @@ def train(model, trainloader, criterion, optimizer, device):
 
     train_loss = torch.zeros(1, device=device)
     correct = torch.zeros(1, dtype=torch.int64, device=device)
-    for images, targets in tqdm.tqdm(trainloader, desc='Train', leave=False):
+    for images, targets in trainloader:
         images, targets = images.to(device), targets.to(device)
 
         optimizer.zero_grad()
@@ -91,7 +90,7 @@ def evaluate(model, testloader, criterion, device):
 
     test_loss = torch.zeros(1, device=device)
     correct = torch.zeros(1, dtype=torch.int64, device=device)
-    for images, targets in tqdm.tqdm(testloader, desc='Evaluate', leave=False):
+    for images, targets in testloader:
         images, targets = images.to(device), targets.to(device)
 
         with torch.no_grad():
@@ -107,7 +106,7 @@ def evaluate(model, testloader, criterion, device):
 
 if __name__ == '__main__':
     # 0. Hyper parameters
-    config = {
+    hyper_parameters = {
         'batch_size': 256,
         'epoch': 10,
         'lr': 0.01,
@@ -117,9 +116,11 @@ if __name__ == '__main__':
         'prefetch_factor': 30000,
         'persistent_workers': True,
     }
+    wandb.init(project='test', entity='synml', config=hyper_parameters)
+    config = wandb.config
 
     # Pytorch reproducibility
-    if config['reproducibility']:
+    if config.reproducibility:
         torch.manual_seed(0)
         torch.cuda.manual_seed(0)
         torch.cuda.manual_seed_all(0)
@@ -138,20 +139,20 @@ if __name__ == '__main__':
     testset = torchvision.datasets.MNIST(root='data', train=False, transform=transform)
     trainloader = torch.utils.data.DataLoader(
         trainset,
-        config['batch_size'],
+        config.batch_size,
         shuffle=True,
-        num_workers=config['num_workers'],
-        pin_memory=config['pin_memory'],
-        prefetch_factor=config['prefetch_factor'],
-        persistent_workers=config['persistent_workers'],
+        num_workers=config.num_workers,
+        pin_memory=config.pin_memory,
+        prefetch_factor=config.prefetch_factor,
+        persistent_workers=config.persistent_workers,
     )
     testloader = torch.utils.data.DataLoader(
         testset,
-        config['batch_size'],
-        num_workers=config['num_workers'],
-        pin_memory=config['pin_memory'],
-        prefetch_factor=config['prefetch_factor'],
-        persistent_workers=config['persistent_workers'],
+        config.batch_size,
+        num_workers=config.num_workers,
+        pin_memory=config.pin_memory,
+        prefetch_factor=config.prefetch_factor,
+        persistent_workers=config.persistent_workers,
     )
 
     # 2. Model
@@ -161,31 +162,25 @@ if __name__ == '__main__':
 
     # 3. Loss function, Optimizer, Scheduler
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.RAdam(model.parameters(), config['lr'])
-    scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, 1, 0, config['epoch'])
+    optimizer = torch.optim.RAdam(model.parameters(), config.lr)
+    scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, 1, 0, config.epoch)
 
-    # 4. Tensorboard
-    writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
-    writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
-    wandb.init(project='test', entity='synml', config=config)
     wandb.watch(model, log='all', log_freq=10)
 
     # 5. Train and Test
     best_accuracy = 0
-    for eph in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
+    for eph in tqdm.tqdm(range(config.epoch), desc='Epoch'):
         train_loss, train_accuracy = train(model, trainloader, criterion, optimizer, device)
         test_loss, test_accuracy = evaluate(model, testloader, criterion, device)
         scheduler.step()
 
-        # Write data to Tensorboard
-        writer.add_scalar('Train/loss', train_loss, eph)
-        writer.add_scalar('Train/accuracy', train_accuracy, eph)
-        writer.add_scalar('Train/lr', optimizer.param_groups[0]['lr'], eph)
-        writer.add_scalar('Test/loss', test_loss, eph)
-        writer.add_scalar('Test/accuracy', test_accuracy, eph)
+        # Log to wandb
         wandb.log({
-            'Train': {'loss': train_loss, 'accuracy': train_accuracy, 'lr': optimizer.param_groups[0]['lr']},
-            'Test': {'loss': test_loss, 'accuracy': test_accuracy},
+            'Train_loss': train_loss,
+            'Train_accuracy': train_accuracy,
+            'Test_loss': test_loss,
+            'Test_accuracy': test_accuracy,
+            'lr': optimizer.param_groups[0]['lr'],
         })
 
         # Save model weight
@@ -195,6 +190,4 @@ if __name__ == '__main__':
             torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_best.pth'))
             best_accuracy = test_accuracy
 
-    # Close Tensorboard
-    writer.close()
     wandb.finish()
