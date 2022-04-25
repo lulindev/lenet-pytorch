@@ -165,6 +165,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.RAdam(model.parameters(), config.lr)
     scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, 1, 0, config.epoch)
 
+    # 4. Collect gradients and parameters using wandb.
     wandb.watch(model, log='all', log_freq=10)
 
     # 5. Train and Test
@@ -190,4 +191,5 @@ if __name__ == '__main__':
             torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_best.pth'))
             best_accuracy = test_accuracy
 
+    # Finish wandb
     wandb.finish()

@@ -27,9 +27,9 @@ if __name__ == '__main__':
     model = lenet.LeNet().to(device)
     model_name = model.__str__().split('(')[0]
     if os.path.exists(os.path.join('weights', f'{model_name}_best.pth')):
-        model.load_state_dict(torch.load('weights/{}_best.pth'.format(model.__str__().split('(')[0])))
+        model.load_state_dict(torch.load(os.path.join('weights', f'{model_name}_best.pth')))
     else:
-        print('FileNotFound: pretrained_weights (' + model_name + ')')
+        print(f'FileNotFound: pretrained_weight ({model_name})')
 
     # 이미지 불러오기
     image_number = input('Enter the image number of the dataset>>> ')
