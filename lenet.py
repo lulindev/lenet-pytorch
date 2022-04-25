@@ -167,8 +167,8 @@ if __name__ == '__main__':
     # 4. Tensorboard
     writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
     writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
-    wandb.init(project='test', entity='synml', name=model_name, config=config)
-    wandb.watch(model, criterion, log='all', log_freq=10)
+    wandb.init(project='test', entity='synml', config=config)
+    wandb.watch(model, log='all', log_freq=10)
 
     # 5. Train and Test
     best_accuracy = 0
