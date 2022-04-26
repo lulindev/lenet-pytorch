@@ -119,7 +119,7 @@ if __name__ == '__main__':
     wandb.init(project='test', entity='synml', config=hyper_parameters)
     config = wandb.config
 
-    # Pytorch reproducibility
+    # (Optional) Pytorch reproducibility
     if config.reproducibility:
         torch.manual_seed(0)
         torch.cuda.manual_seed(0)
